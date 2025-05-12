@@ -10,8 +10,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Press the green 'Create' button below to create this issue template with the data pre-processing steps that need to be completed with each new PAM glider dataset. More detail on these methods can be found [here](https://nmfs-ost.github.io/PAM-Glider/content/data_processing/seaglider-wispr2.html)
-
+        Press the green 'Create' button below to create this issue template with the data pre-processing steps that need to be completed with each new PAM glider dataset
   - type: input
     id: dataset-name
     attributes:
@@ -20,6 +19,11 @@ body:
       placeholder: e.g., sg679_Aug2024
     validations: 
       required: true
+
+  - type: markdown
+    attributes: 
+      value: |
+        More detail on these methods can be found [here](https://nmfs-ost.github.io/PAM-Glider/content/data_processing/seaglider-wispr2.html)
   
   - type: checkboxes
     id: checklist_Offload-Data
