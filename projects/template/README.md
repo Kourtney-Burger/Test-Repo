@@ -4,7 +4,7 @@ status: In Progress
 start_date: 2025-01-15
 end_date: 2025-02-02
 team_lead: Jane Doe
-budget: 50000
+budget: 5000
 ---
 Test README.md template for creating new project folders and automatically adding those to a spreadsheet 
 
