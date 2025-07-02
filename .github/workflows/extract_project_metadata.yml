@@ -1,0 +1,47 @@
+name: Extract Markdown Metadata to Spreadsheet
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+    paths:
+      - 'projects/**/README.md' # Adjust this path to where your MD files are located
+
+jobs:
+  extract_and_update:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2 # Use a dedicated action for R setup
+
+    - name: Install R packages
+      run: |
+        R -e 'install.packages(c("yaml", "dplyr", "readr", "googlesheets4"))'
+
+    - name: Authenticate with Google Sheets (if using Google Sheets)
+      # This step requires setting up secrets in your GitHub repository
+      # for a service account or user-based authentication.
+      # For a service account:
+      # - GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}
+      # For user-based (less common for automated workflows):
+      # - GOOGLE_APP_TOKEN: ${{ secrets.GOOGLE_APP_TOKEN }}
+      # More details on googlesheets4 authentication: https://googlesheets4.tidyverse.org/articles/auth.html
+      run: |
+        R -e '
+          # Authenticate with Google Sheets
+          # Option 1: Service Account (recommended for automated workflows)
+          # Make sure GOOGLE_CREDENTIALS is a secret containing the JSON key file content
+          # sheets_auth(path = Sys.getenv("GOOGLE_CREDENTIALS"))
+
+          # Option 2: User-based (less suitable for actions, but for completeness)
+          # sheets_auth(token = Sys.getenv("GOOGLE_APP_TOKEN"))
+          # sheets_auth(email = TRUE) # This would require interactive authentication, not suitable for CI/CD
+        '
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }} # Or other auth secrets
+
+    - name: Run R script to extract and update spreadsheet
+      run: Rscript .github/workflows/extract_metadata.R
