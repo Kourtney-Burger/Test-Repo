@@ -1,0 +1,33 @@
+name: "Bug Report"
+description: "Report a bug to help us improve."
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for helping us out! Please fill in the details below."
+
+  - type: dropdown
+    id: details
+    attributes:
+      label: "Affected areas and browsers"
+      description: "Select all that apply."
+      multiple: true
+      options:
+        - "Frontend"
+        - "Backend"
+        - "Authentication"
+        - "Chrome"
+        - "Firefox"
+        - "Safari"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-details
+    attributes:
+      label: "Bug Details"
+      description: "Provide a clear description of the bug and steps to reproduce it."
+      placeholder: "Example: The login button is not visible on mobile devices. Steps to reproduce: 1. Go to the login page on your phone. 2. Observe the missing button."
+    validations:
+      required: true
