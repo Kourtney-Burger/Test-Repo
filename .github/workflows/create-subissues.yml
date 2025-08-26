@@ -1,0 +1,86 @@
+name: Create Sub-Issues for Lab Processes
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  create-subissues:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Parse and create sub-issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const issueNumber = issue.number;
+            const issueBody = issue.body;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const checkedRegex = /- \[x\] (.+)/gi;
+            const existingTaskListRegex = /^- \[.\] #(\d+)/gm;
+
+            let match;
+            const checkedItems = [];
+            const createdSubIssues = [];
+
+            // Extract checked items from the body
+            while ((match = checkedRegex.exec(issueBody)) !== null) {
+              checkedItems.push(match[1].trim());
+            }
+
+            // Search for existing sub-issues linked to this issue
+            const { data: allIssues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open', // change to 'all' if needed
+              per_page: 100,
+            });
+
+            const existingTitles = allIssues
+              .filter(i => i.body?.includes(`Parent issue: #${issueNumber}`))
+              .map(i => i.title);
+
+            for (const item of checkedItems) {
+              const subTitle = `Sub-task: ${item}`;
+
+              if (existingTitles.includes(subTitle)) {
+                console.log(`Sub-issue for "${item}" already exists.`);
+                continue;
+              }
+
+              const subIssue = await github.rest.issues.create({
+                owner,
+                repo,
+                title: subTitle,
+                body: `Tracking progress for lab process: **${item}**\n\nParent issue: #${issueNumber}`,
+                labels: ['lab-process']
+              });
+
+              createdSubIssues.push(subIssue.data);
+            }
+
+            // Prepare updated task list
+            const updatedTaskList = createdSubIssues.map(sub =>
+              `- [ ] #${sub.number}`
+            ).join('\n');
+
+            if (createdSubIssues.length > 0) {
+              const newBody = issueBody + `\n\n### Linked Sub-Issues\n` + updatedTaskList;
+
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body: newBody
+              });
+
+              console.log('Updated parent issue with sub-issue links.');
+            } else {
+              console.log('No new sub-issues created.');
+            }
