@@ -31,15 +31,17 @@ jobs:
             }
 
             // Get existing sub-issues already created for this parent
-            const { data: allIssues } = await github.rest.issues.listForRepo({
+            const allIssuesResponse = await github.rest.issues.listForRepo({
               owner,
               repo,
               state: 'all',
               per_page: 100
             });
 
+            const allIssues = allIssuesResponse.data;
+
             const existingSubIssues = allIssues.filter(i =>
-              i.body?.includes(`Parent issue: #${issueNumber}`)
+              i.body && i.body.includes(`Parent issue: #${issueNumber}`)
             );
 
             const existingTitles = existingSubIssues.map(i => i.title);
@@ -48,4 +50,45 @@ jobs:
             const createdSubIssues = [];
 
             for (const item of checkedItems) {
-              const subTi
+              const subTitle = `Sub-task: ${item}`;
+
+              if (existingTitles.includes(subTitle)) {
+                console.log(`Sub-issue for "${item}" already exists.`);
+                continue;
+              }
+
+              const subIssue = await github.rest.issues.create({
+                owner,
+                repo,
+                title: subTitle,
+                body: `Tracking progress for lab process: **${item}**\n\nParent issue: #${issueNumber}`,
+                labels: ['lab-process']
+              });
+
+              createdSubIssues.push(subIssue.data);
+            }
+
+            // Combine existing and new task list items
+            const newTaskList = [
+              ...existingTaskList,
+              ...createdSubIssues.map(sub => `- [ ] #${sub.number}`)
+            ];
+
+            if (newTaskList.length > 0) {
+              let updatedBody = issueBody;
+
+              // Remove any existing task list section
+              const taskListRegex = /### Linked Sub-Issues\n(?:- \[.\] #[0-9]+\n*)*/gi;
+              updatedBody = updatedBody.replace(taskListRegex, '').trim();
+
+              updatedBody += `\n\n### Linked Sub-Issues\n${newTaskList.join('\n')}`;
+
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body: updatedBody
+              });
+
+              console.log('Updated parent issue with sub-issue links.');
+            }
