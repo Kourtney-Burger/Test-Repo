@@ -1,0 +1,31 @@
+name: New Glider Deployment
+description: Status tracking and checklists for a standard ESD glider deployment
+title: "[Deployment] glider-YYYYmmdd"
+labels: ["Glider Build", "Data Management", "Data Processing"]
+assignees: []
+projects: ["14"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Base Deployment Checklist
+        Use this issue to track general glider deployment status and tasks. Open sub-issues below for specific tasks linked to this deployment.**
+
+  - type: input
+    id: glider-name
+    attributes:
+      label: Glider Name
+      description: The name of the glider being deployed (e.g., calanus, amlr01).
+      placeholder: "e.g., calanus"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: additional-sensors
+    attributes:
+      label: Additional Sensors (Sub-Issues Required)
+      description: Select any additional sensors deployed on this glider. For each selected sensor, please create the corresponding sub-issue.
+      options:
+        - label: Active Acoustics (AZFP / Nortek)
+        - label: Passive Acoustics (WISPR / DMON)
+        - label: Imagery (Glidercam / Shadowgraph)
